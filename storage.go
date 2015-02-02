@@ -13,7 +13,7 @@ type CacheStorage interface {
 
 	Set(key string, v string) (err error)
 	Get(key string) (v string, err error)
-	GetMulti(key string) (values map[string]string, err error)
+	GetMulti(keys []string) (values map[string]string, err error)
 
 	Touch(key string, seconds int32) (err error)
 
