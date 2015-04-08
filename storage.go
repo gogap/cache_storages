@@ -7,11 +7,12 @@ type StorageValue struct {
 type CacheStorage interface {
 	StorageType() string
 
-	SetObject(Key string, v interface{}) (err error)
+	SetObject(Key string, v interface{}, seconds int32) (err error)
 	GetObject(key string, v interface{}) (err error)
+
 	GetMultiObject(keyValues map[string]interface{}) (err error)
 
-	Set(key string, v string) (err error)
+	Set(key string, v string, seconds int32) (err error)
 	Get(key string) (v string, err error)
 	GetMulti(keys []string) (values map[string]string, err error)
 

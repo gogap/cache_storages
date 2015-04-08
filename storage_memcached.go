@@ -27,13 +27,13 @@ func (p *MemcachedStorage) StorageType() string {
 	return "memcached"
 }
 
-func (p *MemcachedStorage) SetObject(key string, v interface{}) (err error) {
+func (p *MemcachedStorage) SetObject(key string, v interface{}, seconds int32) (err error) {
 	sV := StorageValue{V: v}
 	if bJsonV, e := json.Marshal(sV); e != nil {
 		err = fmt.Errorf("marshal object to json failed, key: %s, value: %v, %s", key, v, e)
 		return
 	} else {
-		item := &memcache.Item{Key: key, Value: bJsonV}
+		item := &memcache.Item{Key: key, Value: bJsonV, Expiration: seconds}
 		if e := p.client.Set(item); e != nil {
 			err = fmt.Errorf("set key-value to memcache failed, key:%s, value: %v, %s", key, v, e)
 			return
@@ -64,8 +64,8 @@ func (p *MemcachedStorage) GetObject(key string, v interface{}) (err error) {
 	return
 }
 
-func (p *MemcachedStorage) Set(key string, v string) (err error) {
-	item := &memcache.Item{Key: key, Value: []byte(v)}
+func (p *MemcachedStorage) Set(key string, v string, seconds int32) (err error) {
+	item := &memcache.Item{Key: key, Value: []byte(v), Expiration: seconds}
 	if e := p.client.Set(item); e != nil {
 		err = fmt.Errorf("set key-value to memcache failed, key:%s, value: %s, %s", key, v, e)
 		return
