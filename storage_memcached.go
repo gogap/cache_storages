@@ -143,18 +143,23 @@ func (p *MemcachedStorage) GetMultiObject(keyValues map[string]interface{}) (err
 	return
 }
 
-func (p *MemcachedStorage) Increment(key string, delta uint64) (newValue uint64, err error) {
-	if newValue, err = p.client.Increment(key, delta); err != nil {
+func (p *MemcachedStorage) Increment(key string, delta uint64) (newValue int64, err error) {
+	value, err := p.client.Increment(key, delta)
+	if err != nil {
 		err = fmt.Errorf("increment key failed, key: %s, delta: %d, %s", key, delta, err)
 		return
 	}
+	newValue = int64(value)
 	return
 }
-func (p *MemcachedStorage) Decrement(key string, delta uint64) (newValue uint64, err error) {
-	if newValue, err = p.client.Decrement(key, delta); err != nil {
+
+func (p *MemcachedStorage) Decrement(key string, delta uint64) (newValue int64, err error) {
+	value, err := p.client.Decrement(key, delta)
+	if err != nil {
 		err = fmt.Errorf("decrement key failed, key: %s, delta: %d, %s", key, delta, err)
 		return
 	}
+	newValue = int64(value)
 	return
 }
 
