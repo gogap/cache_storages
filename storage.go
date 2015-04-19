@@ -18,8 +18,8 @@ type CacheStorage interface {
 
 	Touch(key string, seconds int32) (err error)
 
-	Increment(key string, delta uint64) (newValue uint64, err error)
-	Decrement(key string, delta uint64) (newValue uint64, err error)
+	Increment(key string, delta uint64) (newValue int64, err error)
+	Decrement(key string, delta uint64) (newValue int64, err error)
 
 	Delete(key string) error
 	DeleteAll() error
