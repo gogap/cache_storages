@@ -10,14 +10,12 @@ import (
 const (
 	MAX_IDLE     = 3
 	IDLE_TIMEOUT = 180
-	HASH_KEY     = "hash_key"
 )
 
 type RedisStorage struct {
 	pool  *redis.Pool
 	conn  string
 	index int
-	key   string
 	auth  string
 }
 
@@ -44,7 +42,6 @@ func newRedisStorage(conn string, index int) (storage *RedisStorage) {
 	storage = new(RedisStorage)
 	storage.conn = conn
 	storage.index = index
-	storage.key = HASH_KEY
 	return
 }
 
@@ -84,12 +81,12 @@ func (p *RedisStorage) do(cmd string, args ...interface{}) (interface{}, error) 
 }
 
 // put cache to redis
-func (p *RedisStorage) SetObject(key string, value interface{}) (err error) {
+func (p *RedisStorage) SetObject(key string, value interface{}, seconds int32) (err error) {
 	data, err := json.Marshal(value)
 	if err != nil {
 		return
 	}
-	if _, err = p.do("HSET", p.key, key, data); err != nil {
+	if _, err = p.do("SETEX", key, seconds, data); err != nil {
 		return err
 	}
 	return err
@@ -97,7 +94,7 @@ func (p *RedisStorage) SetObject(key string, value interface{}) (err error) {
 
 // get cache from redis.
 func (p *RedisStorage) GetObject(key string, value interface{}) (err error) {
-	vi, err := p.do("HGET", p.key, key)
+	vi, err := p.do("GET", key)
 	if err != nil || vi == nil {
 		return
 	}
@@ -118,25 +115,25 @@ func (p *RedisStorage) GetMultiObject(keyValues map[string]interface{}) (err err
 }
 
 func (p *RedisStorage) Get(key string) (value string, err error) {
-	data, err := p.do("HGET", p.key, key)
+	data, err := p.do("GET", key)
 	if err != nil || data == nil {
 		return
 	}
 	return redis.String(data, err)
 }
 
-func (p *RedisStorage) Set(key, value string) (err error) {
-	_, err = p.do("HSET", p.key, key, value)
+func (p *RedisStorage) Set(key, value string, seconds int32) (err error) {
+	_, err = p.do("SETEX", key, seconds, value)
 	return
 }
 
-func (p *RedisStorage) SetInt(key string, value int64) (err error) {
-	_, err = p.do("HSET", p.key, key, value)
+func (p *RedisStorage) SetInt(key string, value int64, seconds int32) (err error) {
+	_, err = p.do("SETEX", key, seconds, value)
 	return
 }
 
 func (p *RedisStorage) GetInt(key string) (value int64, err error) {
-	data, err := p.do("HGET", p.key, key)
+	data, err := p.do("GET", key)
 	if err != nil || data == nil {
 		return
 	}
@@ -160,25 +157,25 @@ func (p *RedisStorage) Touch(key string, seconds int32) (err error) {
 }
 
 func (p *RedisStorage) Increment(key string, delta uint64) (newValue int64, err error) {
-	return redis.Int64(p.do("HINCRBY", p.key, key, delta))
+	return redis.Int64(p.do("INCRBY", key, delta))
 }
 
 func (p *RedisStorage) Decrement(key string, delta uint64) (newValue int64, err error) {
-	return redis.Int64(p.do("HINCRBY", p.key, key, -delta))
+	return redis.Int64(p.do("DECRBY", key, delta))
 }
 
 func (p *RedisStorage) Delete(key string) (err error) {
-	_, err = p.do("HDEL", p.key, key)
+	_, err = p.do("DEL", key)
 	return
 }
 
 func (p *RedisStorage) DeleteAll() (err error) {
-	fields, err := redis.Strings(p.do("HKEYS", p.key))
+	fields, err := redis.Strings(p.do("KEYS", "*"))
 	if err != nil {
 		return
 	}
 	for _, field := range fields {
-		if _, err = p.do("HDEL", p.key, field); err != nil {
+		if _, err = p.do("DEL", field); err != nil {
 			return
 		}
 	}

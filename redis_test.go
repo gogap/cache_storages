@@ -2,6 +2,7 @@ package cache_storages
 
 import (
 	"testing"
+	"time"
 )
 
 func TestRedisGetSetObject(t *testing.T) {
@@ -10,7 +11,9 @@ func TestRedisGetSetObject(t *testing.T) {
 		Year int
 	}
 
-	storage, err := NewRedisStorage("127.0.0.1:6379", 0)
+	var storage CacheStorage
+	var err error
+	storage, err = NewRedisStorage("127.0.0.1:6379", 0)
 	if err != nil {
 		t.Error(err)
 		return
@@ -20,7 +23,7 @@ func TestRedisGetSetObject(t *testing.T) {
 	v.Name = "y"
 	v.Year = 24
 
-	err = storage.SetObject("key", v)
+	err = storage.SetObject("key", v, 10)
 	if err != nil {
 		t.Error(err)
 		return
@@ -46,7 +49,7 @@ func TestRedisGetSet(t *testing.T) {
 		return
 	}
 
-	err = storage.Set("key", "value")
+	err = storage.Set("key", "value", 1)
 	if err != nil {
 		t.Error(err)
 		return
@@ -59,6 +62,18 @@ func TestRedisGetSet(t *testing.T) {
 	}
 
 	if value != "value" {
+		t.Error("get string error", value)
+		return
+	}
+
+	time.Sleep(time.Second * 3)
+	value, err = storage.Get("key")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if value != "" {
 		t.Error("get string error", value)
 		return
 	}
@@ -80,7 +95,7 @@ func TestRedisGetSetMultiObject(t *testing.T) {
 	v.Name = "y"
 	v.Year = 24
 
-	err = storage.SetObject("key", v)
+	err = storage.SetObject("key", v, 10)
 	if err != nil {
 		t.Error(err)
 		return
@@ -90,7 +105,7 @@ func TestRedisGetSetMultiObject(t *testing.T) {
 	v2.Name = "l"
 	v2.Year = 48
 
-	err = storage.SetObject("key2", v2)
+	err = storage.SetObject("key2", v2, 10)
 	if err != nil {
 		t.Error(err)
 		return
@@ -133,13 +148,13 @@ func TestRedisGetSetMulti(t *testing.T) {
 		return
 	}
 
-	err = storage.Set("key", "value")
+	err = storage.Set("key", "value", 10)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	err = storage.Set("key2", "value2")
+	err = storage.Set("key2", "value2", 10)
 	if err != nil {
 		t.Error(err)
 		return
@@ -163,7 +178,7 @@ func TestRedisDelete(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	err = storage.Set("key", "value")
+	err = storage.Set("key", "value", 10)
 	if err != nil {
 		t.Error(err)
 		return
@@ -190,12 +205,12 @@ func TestRedisDeleteAll(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	err = storage.Set("key", "value")
+	err = storage.Set("key", "value", 10)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	err = storage.Set("key2", "value2")
+	err = storage.Set("key2", "value2", 10)
 	if err != nil {
 		t.Error(err)
 		return
@@ -231,7 +246,7 @@ func TestRedisIncrement(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	err = storage.SetInt("key", 10)
+	err = storage.SetInt("key", 10, 10)
 	if err != nil {
 		t.Error(err)
 		return
@@ -254,19 +269,19 @@ func TestRedisDecrement(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	err = storage.SetInt("key", 10)
+	err = storage.SetInt("key", 10, 10)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	newValue, err := storage.Increment("key", 12)
+	newValue, err := storage.Decrement("key", 12)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
 	if newValue != -2 {
-		t.Error("value error")
+		t.Error("value error", newValue)
 		return
 	}
 }
