@@ -55,6 +55,7 @@ func TestRedisGetSet(t *testing.T) {
 		return
 	}
 
+	//验证set get
 	value, err := storage.Get("key")
 	if err != nil {
 		t.Error(err)
@@ -67,6 +68,7 @@ func TestRedisGetSet(t *testing.T) {
 	}
 
 	time.Sleep(time.Second * 3)
+	//验证超时
 	value, err = storage.Get("key")
 	if err != nil {
 		t.Error(err)
@@ -77,6 +79,41 @@ func TestRedisGetSet(t *testing.T) {
 		t.Error("get string error", value)
 		return
 	}
+
+	err = storage.Set("key", "value", 0)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	value, err = storage.Get("key")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if value != "value" {
+		t.Error("get string error", value)
+		return
+	}
+
+	err = storage.Touch("key", 1)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	time.Sleep(time.Second * 3)
+	value, err = storage.Get("key")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if value != "" {
+		t.Error("get string error", value)
+		return
+	}
+
 }
 
 func TestRedisGetSetMultiObject(t *testing.T) {
