@@ -86,10 +86,12 @@ func (p *RedisStorage) SetObject(key string, value interface{}, seconds int32) (
 	if err != nil {
 		return
 	}
-	if _, err = p.do("SETEX", key, seconds, data); err != nil {
-		return err
+	if seconds > 0 {
+		_, err = p.do("SETEX", key, seconds, data)
+	} else {
+		_, err = p.do("SET", key, data)
 	}
-	return err
+	return
 }
 
 // get cache from redis.
@@ -123,12 +125,20 @@ func (p *RedisStorage) Get(key string) (value string, err error) {
 }
 
 func (p *RedisStorage) Set(key, value string, seconds int32) (err error) {
-	_, err = p.do("SETEX", key, seconds, value)
+	if seconds > 0 {
+		_, err = p.do("SETEX", key, seconds, value)
+	} else {
+		_, err = p.do("SET", key, value)
+	}
 	return
 }
 
 func (p *RedisStorage) SetInt(key string, value int64, seconds int32) (err error) {
-	_, err = p.do("SETEX", key, seconds, value)
+	if seconds > 0 {
+		_, err = p.do("SETEX", key, seconds, value)
+	} else {
+		_, err = p.do("SET", key, value)
+	}
 	return
 }
 
@@ -153,6 +163,7 @@ func (p *RedisStorage) GetMulti(keys []string) (values map[string]string, err er
 }
 
 func (p *RedisStorage) Touch(key string, seconds int32) (err error) {
+	_, err = p.do("expire", key, seconds)
 	return
 }
 
