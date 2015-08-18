@@ -2,9 +2,40 @@ package cache_storages
 
 import (
 	"testing"
-	"time"
+	//"time"
 )
 
+func TestRedisSetNX(t *testing.T) {
+	storage, err := NewRedisStorage("127.0.0.1:6379", 0)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	result, err := storage.SetNX("key111sdfsdf", "value")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(result)
+}
+
+func TestRedisGetSetNX(t *testing.T) {
+	storage, err := NewRedisStorage("127.0.0.1:6379", 0)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	result, err := storage.GetSet("key111sdfsdf", "value1")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(result)
+}
+
+/*
 func TestRedisGetSetObject(t *testing.T) {
 	type value struct {
 		Name string
@@ -322,3 +353,4 @@ func TestRedisDecrement(t *testing.T) {
 		return
 	}
 }
+*/

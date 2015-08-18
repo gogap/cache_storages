@@ -133,6 +133,16 @@ func (p *RedisStorage) Set(key, value string, seconds int32) (err error) {
 	return
 }
 
+func (p *RedisStorage) SetNX(key, value string) (result int, err error) {
+	data, err := p.do("SETNX", key, value)
+	return redis.Int(data, err)
+}
+
+func (p *RedisStorage) GetSet(key, value string) (result string, err error) {
+	data, err := p.do("GETSET", key, value)
+	return redis.String(data, err)
+}
+
 func (p *RedisStorage) SetInt(key string, value int64, seconds int32) (err error) {
 	if seconds > 0 {
 		_, err = p.do("SETEX", key, seconds, value)
