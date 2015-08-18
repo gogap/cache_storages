@@ -13,14 +13,14 @@ const (
 )
 
 type RedisStorage struct {
-	pool  *redis.Pool
-	conn  string
-	index int
-	auth  string
+	pool *redis.Pool
+	conn string
+	db   int
+	auth string
 }
 
-func NewAuthRedisStorage(conn string, index int, auth string) (storage *RedisStorage, err error) {
-	storage = newRedisStorage(conn, index)
+func NewAuthRedisStorage(conn string, db int, auth string) (storage *RedisStorage, err error) {
+	storage = newRedisStorage(conn, db)
 	storage.auth = auth
 	storage.init()
 	c := storage.pool.Get()
@@ -29,8 +29,8 @@ func NewAuthRedisStorage(conn string, index int, auth string) (storage *RedisSto
 	return
 }
 
-func NewRedisStorage(conn string, index int) (storage *RedisStorage, err error) {
-	storage = newRedisStorage(conn, index)
+func NewRedisStorage(conn string, db int) (storage *RedisStorage, err error) {
+	storage = newRedisStorage(conn, db)
 	storage.init()
 	c := storage.pool.Get()
 	defer c.Close()
@@ -38,10 +38,10 @@ func NewRedisStorage(conn string, index int) (storage *RedisStorage, err error) 
 	return
 }
 
-func newRedisStorage(conn string, index int) (storage *RedisStorage) {
+func newRedisStorage(conn string, db int) (storage *RedisStorage) {
 	storage = new(RedisStorage)
 	storage.conn = conn
-	storage.index = index
+	storage.db = db
 	return
 }
 
@@ -58,7 +58,7 @@ func (p *RedisStorage) init() {
 		if p.auth != "" {
 			_, err = c.Do("AUTH", p.auth)
 		}
-		_, selecterr := c.Do("SELECT", p.index)
+		_, selecterr := c.Do("SELECT", p.db)
 		if selecterr != nil {
 			c.Close()
 			return nil, selecterr
@@ -181,14 +181,6 @@ func (p *RedisStorage) Delete(key string) (err error) {
 }
 
 func (p *RedisStorage) DeleteAll() (err error) {
-	fields, err := redis.Strings(p.do("KEYS", "*"))
-	if err != nil {
-		return
-	}
-	for _, field := range fields {
-		if _, err = p.do("DEL", field); err != nil {
-			return
-		}
-	}
+	_, err = p.do("FLUSHDB")
 	return
 }
